@@ -64,3 +64,4 @@ MANIFEST
           overwrite_files: true
           make_latest: true
           files: /tmp/facefind_android/build/app/outputs/flutter-apk/app-release.apk
+# rebuild 1792517953
