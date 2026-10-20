@@ -1,3 +1,5 @@
+import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'ad_manager.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -10,6 +12,10 @@ class FaceFindApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      builder: (context, child) => Column(children: [
+        Expanded(child: child ?? const SizedBox.shrink()),
+        AdManager.instance.bannerSlot(),
+      ]),
       title: 'FaceFind',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(

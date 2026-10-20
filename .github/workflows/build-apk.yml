@@ -26,6 +26,15 @@ jobs:
       - name: Create Android project scaffold
         run: |
           flutter create --platforms=android --org com.facefind.app /tmp/facefind_android
+          python3 - <<'MANIFEST'
+from pathlib import Path
+p = Path('/tmp/facefind_android/android/app/src/main/AndroidManifest.xml')
+s = p.read_text()
+meta = '<meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-4455023088168031~7152639159"/>'
+if 'com.google.android.gms.ads.APPLICATION_ID' not in s:
+    s = s.replace('</application>', '    ' + meta + '\\n    </application>')
+    p.write_text(s)
+MANIFEST
           cp mobile/pubspec.yaml /tmp/facefind_android/pubspec.yaml
           rm -rf /tmp/facefind_android/lib
           cp -r mobile/lib /tmp/facefind_android/lib
