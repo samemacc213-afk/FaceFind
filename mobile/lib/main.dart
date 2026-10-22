@@ -3,6 +3,7 @@ import 'ad_manager.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 void main() => runApp(const FaceFindApp());
@@ -43,6 +44,8 @@ class _SearchPageState extends State<SearchPage> {
   final picker = ImagePicker();
   XFile? photo;
   String? error;
+  String? faceResult;
+  final faceDetector = FaceDetector(options: FaceDetectorOptions());
 
   Future<void> choosePhoto() async {
     final file = await picker.pickImage(
@@ -53,7 +56,17 @@ class _SearchPageState extends State<SearchPage> {
       setState(() {
         photo = file;
         error = null;
+        faceResult = 'ছবি বিশ্লেষণ হচ্ছে...';
       });
+      try {
+        final input = InputImage.fromFilePath(file.path);
+        final faces = await faceDetector.processImage(input);
+        if (mounted) setState(() => faceResult = faces.isEmpty
+            ? 'ছবিতে কোনো মুখ শনাক্ত হয়নি।'
+            : 'ছবিতে ${faces.length}টি মুখ শনাক্ত হয়েছে।');
+      } catch (e) {
+        if (mounted) setState(() => faceResult = 'মুখ শনাক্ত করা যায়নি: $e');
+      }
     }
   }
 
@@ -78,6 +91,7 @@ class _SearchPageState extends State<SearchPage> {
 
   @override
   void dispose() {
+    faceDetector.close();
     nameController.dispose();
     super.dispose();
   }
@@ -145,6 +159,10 @@ class _SearchPageState extends State<SearchPage> {
                             ),
                     ),
                   ),
+                  if (faceResult != null) ...[
+                    const SizedBox(height: 10),
+                    Text(faceResult!, textAlign: TextAlign.center),
+                  ],
                   if (photo != null)
                     TextButton.icon(
                       onPressed: choosePhoto,
