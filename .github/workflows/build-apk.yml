@@ -100,7 +100,9 @@ jobs:
           path: /tmp/facefind_android/build/app/outputs/flutter-apk/app-release.apk
 
       - name: Publish GitHub Release
-        if: startsWith(github.ref, 'refs/tags/')
+        if: github.event_name == 'push'
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: v1.${{ github.run_number }}
+          name: FaceFind v1.${{ github.run_number }}
           files: /tmp/facefind_android/build/app/outputs/flutter-apk/app-release.apk
