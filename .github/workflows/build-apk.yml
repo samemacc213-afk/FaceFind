@@ -95,6 +95,17 @@ jobs:
           cat $M
           find /tmp/facefind_android/android/app/src/main -name "MainActivity*"
 
+      - name: Fix activity name
+        run: |
+          A=/tmp/facefind_android/android
+          M=$A/app/src/main/AndroidManifest.xml
+          F=$(find $A/app/src/main -name "MainActivity.*" | head -1)
+          PKG=$(grep -m1 '^package ' $F | sed 's/package //;s/;//' | tr -d '\r ')
+          echo "PKG=$PKG"
+          sed -i "s|android:name=\".MainActivity\"|android:name=\"$PKG.MainActivity\"|" $M
+          grep -n "MainActivity" $M
+          grep -n "namespace\|applicationId\|minSdk" $A/app/build.gradle* || true
+
       - name: Build APK
         run: |
           cd /tmp/facefind_android
