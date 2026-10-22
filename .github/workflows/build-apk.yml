@@ -52,6 +52,40 @@ jobs:
         run: |
           grep -RniE 'io\.flutter\.app\.|PluginRegistry\.Registrar|registerWith\(Registrar' /tmp/facefind_android/android /root/.pub-cache 2>/dev/null | head -80 || true
 
+      - name: Ensure Android v2 embedding
+        run: |
+          python3 - <<'PYMANIFEST'
+          from pathlib import Path
+          import xml.etree.ElementTree as ET
+
+          p = Path("/tmp/facefind_android/android/app/src/main/AndroidManifest.xml")
+          tree = ET.parse(p)
+          root = tree.getroot()
+          ns = "{http://schemas.android.com/apk/res/android}"
+          app = root.find("application")
+          if app is None:
+              raise SystemExit("Android application tag not found")
+
+          app.attrib.pop(ns + "name", None)
+          for item in app.findall("meta-data"):
+              if item.get(ns + "name") in (
+                  "flutterEmbedding",
+                  "com.google.android.gms.ads.APPLICATION_ID"
+              ):
+                  app.remove(item)
+
+          ET.SubElement(app, "meta-data", {
+              ns + "name": "flutterEmbedding",
+              ns + "value": "2"
+          })
+          ET.SubElement(app, "meta-data", {
+              ns + "name": "com.google.android.gms.ads.APPLICATION_ID",
+              ns + "value": "ca-app-pub-4455023088168031~7152639159"
+          })
+          tree.write(p, encoding="utf-8", xml_declaration=True)
+          PYMANIFEST
+          grep -n "flutterEmbedding\|APPLICATION_ID" /tmp/facefind_android/android/app/src/main/AndroidManifest.xml
+
       - name: Build APK
         run: |
           cd /tmp/facefind_android
