@@ -10,7 +10,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(const FaceFindApp());
   Future.delayed(const Duration(seconds: 2), () {
-    AdManager.instance.initialize().catchError((_) {});
+    // ads disabled for test
   });
 }
 
@@ -21,7 +21,7 @@ class FaceFindApp extends StatelessWidget {
     return MaterialApp(
       builder: (context, child) => Column(children: [
         Expanded(child: child ?? const SizedBox.shrink()),
-        AdManager.instance.bannerSlot(),
+        const SizedBox.shrink(),
       ]),
       title: 'FaceFind',
       debugShowCheckedModeBanner: false,
