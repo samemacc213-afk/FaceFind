@@ -48,6 +48,10 @@ jobs:
           tree.write(p, encoding="utf-8", xml_declaration=True)
           PYMANIFEST
 
+      - name: Diagnose Android embedding
+        run: |
+          grep -RniE 'io\.flutter\.app\.|PluginRegistry\.Registrar|registerWith\(Registrar' /tmp/facefind_android/android /root/.pub-cache 2>/dev/null | head -80 || true
+
       - name: Build APK
         run: |
           cd /tmp/facefind_android
