@@ -1,11 +1,9 @@
 name: Build FaceFind APK
 
 on:
-  workflow_dispatch:
   push:
-    paths:
-      - 'mobile/**'
-      - '.github/workflows/build-apk.yml'
+    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -14,54 +12,45 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Install Flutter
-        uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@v2
         with:
           channel: stable
-          cache: true
 
-      - name: Create Android project scaffold
+      - name: Create Android project
+        run: flutter create --platforms=android --org com.facefind.app /tmp/facefind_android
+
+      - name: Copy app source
         run: |
-          flutter create --platforms=android --org com.facefind.app /tmp/facefind_android
-          python3 - <<'MANIFEST'
-from pathlib import Path
-p = Path('/tmp/facefind_android/android/app/src/main/AndroidManifest.xml')
-s = p.read_text()
-meta = '<meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-4455023088168031~7152639159"/>'
-if 'com.google.android.gms.ads.APPLICATION_ID' not in s:
-    s = s.replace('</application>', '    ' + meta + '\\n    </application>')
-    p.write_text(s)
-MANIFEST
           cp mobile/pubspec.yaml /tmp/facefind_android/pubspec.yaml
-          rm -rf /tmp/facefind_android/lib
           cp -r mobile/lib /tmp/facefind_android/lib
 
-      - name: Get packages
-        working-directory: /tmp/facefind_android
-        run: flutter pub get
+      - name: Add AdMob App ID
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("/tmp/facefind_android/android/app/src/main/AndroidManifest.xml")
+          s = p.read_text()
+          meta = '<meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-4455023088168031~7152639159"/>'
+          if "com.google.android.gms.ads.APPLICATION_ID" not in s:
+              s = s.replace("<application", "<application>" + meta, 1) if False else s.replace("<application", "<application\n        " + meta, 1)
+          p.write_text(s)
+          PY
 
-      - name: Build release APK
-        working-directory: /tmp/facefind_android
-        run: flutter build apk --release
+      - name: Build APK
+        run: |
+          cd /tmp/facefind_android
+          flutter pub get
+          flutter build apk --release
 
-      - name: Upload APK artifact
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
-          name: FaceFind-Android-APK
+          name: facefind-release-apk
           path: /tmp/facefind_android/build/app/outputs/flutter-apk/app-release.apk
-          if-no-files-found: error
 
       - name: Publish GitHub Release
-        if: github.ref == 'refs/heads/main'
+        if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: facefind-latest
-          name: FaceFind Android APK
-          body: Download FaceFind.apk and install it on Android.
-          overwrite_files: true
-          make_latest: true
           files: /tmp/facefind_android/build/app/outputs/flutter-apk/app-release.apk
-# rebuild 1792517953
