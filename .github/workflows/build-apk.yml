@@ -19,7 +19,7 @@ jobs:
           channel: stable
 
       - name: Create Android project
-        run: flutter create --platforms=android --org com.facefind.app /tmp/facefind_android
+        run: flutter create --platforms=android --org com.facefind.app --project-name facefind /tmp/facefind_android
 
       - name: Copy app source
         run: |
