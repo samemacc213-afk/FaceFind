@@ -88,6 +88,13 @@ jobs:
           PYMANIFEST
           grep -n "flutterEmbedding\|APPLICATION_ID" /tmp/facefind_android/android/app/src/main/AndroidManifest.xml
 
+      - name: Add permissions and show manifest
+        run: |
+          M=/tmp/facefind_android/android/app/src/main/AndroidManifest.xml
+          grep -q "permission.INTERNET" $M || sed -i 's|<application|<uses-permission android:name="android.permission.INTERNET"/><uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/><application|' $M
+          cat $M
+          find /tmp/facefind_android/android/app/src/main -name "MainActivity*"
+
       - name: Build APK
         run: |
           cd /tmp/facefind_android

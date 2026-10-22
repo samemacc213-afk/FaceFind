@@ -6,7 +6,13 @@ import 'package:image_picker/image_picker.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-void main() => runApp(const FaceFindApp());
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(const FaceFindApp());
+  Future.delayed(const Duration(seconds: 2), () {
+    AdManager.instance.initialize().catchError((_) {});
+  });
+}
 
 class FaceFindApp extends StatelessWidget {
   const FaceFindApp({super.key});
