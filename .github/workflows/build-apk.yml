@@ -24,7 +24,7 @@ jobs:
       - name: Copy app source
         run: |
           cp mobile/pubspec.yaml /tmp/facefind_android/pubspec.yaml
-          cp -r mobile/lib /tmp/facefind_android/lib
+          rm -rf /tmp/facefind_android/lib && cp -r mobile/lib /tmp/facefind_android/lib
 
       - name: Add AdMob App ID
         run: |
