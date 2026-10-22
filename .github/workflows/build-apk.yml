@@ -28,15 +28,25 @@ jobs:
 
       - name: Add AdMob App ID
         run: |
-          python3 - <<'PY'
+          python3 - <<'PYMANIFEST'
           from pathlib import Path
+          import xml.etree.ElementTree as ET
           p = Path("/tmp/facefind_android/android/app/src/main/AndroidManifest.xml")
-          s = p.read_text()
-          meta = '<meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-4455023088168031~7152639159"/>'
-          if "com.google.android.gms.ads.APPLICATION_ID" not in s:
-              s = s.replace("<application", "<application>" + meta, 1) if False else s.replace("<application", "<application\n        " + meta, 1)
-          p.write_text(s)
-          PY
+          tree = ET.parse(p)
+          root = tree.getroot()
+          ns = "{http://schemas.android.com/apk/res/android}"
+          app = root.find("application")
+          if app is None:
+              raise SystemExit("Android application tag not found")
+          for item in app.findall("meta-data"):
+              if item.get(ns + "name") == "com.google.android.gms.ads.APPLICATION_ID":
+                  app.remove(item)
+          ET.SubElement(app, "meta-data", {
+              ns + "name": "com.google.android.gms.ads.APPLICATION_ID",
+              ns + "value": "ca-app-pub-4455023088168031~7152639159"
+          })
+          tree.write(p, encoding="utf-8", xml_declaration=True)
+          PYMANIFEST
 
       - name: Build APK
         run: |
