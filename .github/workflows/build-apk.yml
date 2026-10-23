@@ -106,6 +106,18 @@ jobs:
           grep -n "MainActivity" $M
           grep -n "namespace\|applicationId\|minSdk" $A/app/build.gradle* || true
 
+      - name: Disable R8 shrinking
+        run: |
+          A=/tmp/facefind_android/android/app
+          G=$(ls $A/build.gradle.kts $A/build.gradle 2>/dev/null | head -1)
+          echo "FILE=$G"
+          if [[ "$G" == *.kts ]]; then
+            sed -i '/buildTypes {/,/^    }/ s|release {|release {\n            isMinifyEnabled = false\n            isShrinkResources = false|' $G
+          else
+            sed -i '/buildTypes {/,/^    }/ s|release {|release {\n            minifyEnabled false\n            shrinkResources false|' $G
+          fi
+          sed -n '/buildTypes/,/^    }/p' $G
+
       - name: Build APK
         run: |
           cd /tmp/facefind_android
